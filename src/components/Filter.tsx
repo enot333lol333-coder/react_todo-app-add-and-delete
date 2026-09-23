@@ -1,7 +1,11 @@
 import React from 'react';
 import classNames from 'classnames';
 
-export type FilterStatus = 'all' | 'active' | 'completed';
+export enum FilterStatus {
+  All = 'all',
+  Active = 'active',
+  Completed = 'completed',
+}
 
 type Props = {
   filter: FilterStatus;
@@ -14,10 +18,10 @@ export const Filter: React.FC<Props> = ({ filter, onFilterChange }) => {
       <a
         href="#/"
         className={classNames('filter__link', {
-          selected: filter === 'all',
+          selected: filter === FilterStatus.All,
         })}
         data-cy="FilterLinkAll"
-        onClick={() => onFilterChange('all')}
+        onClick={() => onFilterChange(FilterStatus.All)}
       >
         All
       </a>
@@ -25,10 +29,10 @@ export const Filter: React.FC<Props> = ({ filter, onFilterChange }) => {
       <a
         href="#/active"
         className={classNames('filter__link', {
-          selected: filter === 'active',
+          selected: filter === FilterStatus.Active,
         })}
         data-cy="FilterLinkActive"
-        onClick={() => onFilterChange('active')}
+        onClick={() => onFilterChange(FilterStatus.Active)}
       >
         Active
       </a>
@@ -36,10 +40,10 @@ export const Filter: React.FC<Props> = ({ filter, onFilterChange }) => {
       <a
         href="#/completed"
         className={classNames('filter__link', {
-          selected: filter === 'completed',
+          selected: filter === FilterStatus.Completed,
         })}
         data-cy="FilterLinkCompleted"
-        onClick={() => onFilterChange('completed')}
+        onClick={() => onFilterChange(FilterStatus.Completed)}
       >
         Completed
       </a>

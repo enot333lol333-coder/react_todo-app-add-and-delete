@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import classNames from 'classnames';
 import { UserWarning } from './UserWarning';
 import { Todo } from './types/Todo';
@@ -12,39 +12,42 @@ import { NewTodoForm } from './components/NewTodoForm';
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
-  const [filter, setFilter] = useState<FilterStatus>('all');
+  const [filter, setFilter] = useState<FilterStatus>(FilterStatus.All);
   const [title, setTitle] = useState('');
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [processingIds, setProcessingIds] = useState<number[]>([]);
   const [focusTrigger, setFocusTrigger] = useState(0);
 
+  const showErrorMessage = (message: string) => {
+    setErrorMessage(message);
+    setTimeout(() => setErrorMessage(''), 3000);
+  };
+
   useEffect(() => {
     getTodos()
-      .then(fetchedTodos => {
-        setTodos(fetchedTodos);
-      })
+      .then(setTodos)
       .catch(() => {
-        setErrorMessage('Unable to load todos');
-        setTimeout(() => setErrorMessage(''), 3000);
+        showErrorMessage('Unable to load todos');
       });
   }, []);
+
+  const visibleTodos = useMemo(() => {
+    return todos.filter(todo => {
+      switch (filter) {
+        case FilterStatus.Active:
+          return !todo.completed;
+        case FilterStatus.Completed:
+          return todo.completed;
+        default:
+          return true;
+      }
+    });
+  }, [todos, filter]);
 
   if (!USER_ID) {
     return <UserWarning />;
   }
-
-  const visibleTodos = todos.filter(todo => {
-    if (filter === 'active') {
-      return !todo.completed;
-    }
-
-    if (filter === 'completed') {
-      return todo.completed;
-    }
-
-    return true;
-  });
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -52,8 +55,7 @@ export const App: React.FC = () => {
     const trimmedTitle = title.trim();
 
     if (!trimmedTitle) {
-      setErrorMessage('Title should not be empty');
-      setTimeout(() => setErrorMessage(''), 3000);
+      showErrorMessage('Title should not be empty');
 
       return;
     }
@@ -77,8 +79,7 @@ export const App: React.FC = () => {
         setTitle('');
       })
       .catch(() => {
-        setErrorMessage('Unable to add a todo');
-        setTimeout(() => setErrorMessage(''), 3000);
+        showErrorMessage('Unable to add a todo');
       })
       .finally(() => {
         setTempTodo(null);
@@ -96,8 +97,7 @@ export const App: React.FC = () => {
         );
       })
       .catch(() => {
-        setErrorMessage('Unable to delete a todo');
-        setTimeout(() => setErrorMessage(''), 3000);
+        showErrorMessage('Unable to delete a todo');
       })
       .finally(() => {
         setProcessingIds(current => current.filter(id => id !== todoId));
@@ -131,8 +131,7 @@ export const App: React.FC = () => {
       );
 
       if (hasError) {
-        setErrorMessage('Unable to delete a todo');
-        setTimeout(() => setErrorMessage(''), 3000);
+        showErrorMessage('Unable to delete a todo');
       }
 
       setProcessingIds(current =>
